@@ -92,7 +92,47 @@ def generate_pdf_report(result: dict) -> bytes:
     )
 
     story.append(score_table)
+    add_section_title(story, styles, "Semantic Vector Score")
 
+    story.append(
+        Paragraph(
+            f"Vector Semantic Score: {safe_text(match_result.get('vector_semantic_score', 0))}%",
+            styles["Normal"]
+        )
+    )
+
+    add_section_title(story, styles, "RAG Evidence")
+
+    rag_evidence = match_result.get("rag_evidence", [])
+
+    if rag_evidence:
+        for item in rag_evidence:
+            story.append(
+                Paragraph(
+                    f"• Similarity Score: {safe_text(item.get('similarity_score', ''))}",
+                    styles["Normal"]
+                )
+            )
+            story.append(
+                Paragraph(
+                    f"<b>Job Requirement:</b> {safe_text(item.get('job_requirement', ''))}",
+                    styles["Normal"]
+                )
+            )
+            story.append(
+                Paragraph(
+                    f"<b>Resume Evidence:</b> {safe_text(item.get('matching_resume_evidence', ''))}",
+                    styles["Normal"]
+                )
+            )
+            story.append(Spacer(1, 8))
+    else:
+        story.append(
+            Paragraph(
+                "No RAG evidence available.",
+                styles["Normal"]
+            )
+        )
     add_section_title(story, styles, "Resume Summary")
     story.append(
         Paragraph(
