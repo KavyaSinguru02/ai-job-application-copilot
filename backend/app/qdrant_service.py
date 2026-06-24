@@ -1,8 +1,10 @@
 import os
 import uuid
 from typing import List
+
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient, models
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 load_dotenv()
 
@@ -12,7 +14,6 @@ QDRANT_COLLECTION_NAME = os.getenv(
     "QDRANT_COLLECTION_NAME",
     "resume_rag_chunks_gemini"
 )
-
 VECTOR_SIZE = int(os.getenv("GEMINI_EMBEDDING_DIMENSION", "768"))
 
 qdrant_client = QdrantClient(
@@ -22,10 +23,6 @@ qdrant_client = QdrantClient(
 
 
 def ensure_collection_exists():
-    """
-    Creates the Qdrant collection if it does not already exist.
-    """
-
     collection_exists = qdrant_client.collection_exists(
         collection_name=QDRANT_COLLECTION_NAME
     )
@@ -39,6 +36,52 @@ def ensure_collection_exists():
             )
         )
 
+    ensure_payload_indexes()
+
+
+def ensure_payload_indexes():
+    """
+    Qdrant Cloud strict mode requires payload indexes for filtered search.
+    We filter by analysis_id, so analysis_id must be indexed as keyword.
+    """
+
+    index_fields = [
+        ("analysis_id", models.PayloadSchemaType.KEYWORD),
+        ("user_email", models.PayloadSchemaType.KEYWORD),
+        ("source", models.PayloadSchemaType.KEYWORD),
+    ]
+
+    for field_name, field_schema in index_fields:
+        try:
+            qdrant_client.create_payload_index(
+                collection_name=QDRANT_COLLECTION_NAME,
+                field_name=field_name,
+                field_schema=field_schema,
+                wait=True
+            )
+        except UnexpectedResponse as e:
+            error_text = str(e).lower()
+
+            if (
+                "already exists" in error_text
+                or "already has an index" in error_text
+                or "conflict" in error_text
+            ):
+                continue
+
+            raise e
+        except Exception as e:
+            error_text = str(e).lower()
+
+            if (
+                "already exists" in error_text
+                or "already has an index" in error_text
+                or "conflict" in error_text
+            ):
+                continue
+
+            raise e
+
 
 def upsert_resume_chunks(
     analysis_id: str,
@@ -46,12 +89,6 @@ def upsert_resume_chunks(
     chunks: List[str],
     embeddings: List[List[float]]
 ):
-    """
-    Stores resume chunks and their vectors in Qdrant.
-
-    Payload is metadata attached to each vector.
-    """
-
     ensure_collection_exists()
 
     points = []
@@ -73,7 +110,8 @@ def upsert_resume_chunks(
     if points:
         qdrant_client.upsert(
             collection_name=QDRANT_COLLECTION_NAME,
-            points=points
+            points=points,
+            wait=True
         )
 
 
@@ -82,10 +120,6 @@ def search_resume_chunks(
     query_embedding: List[float],
     top_k: int = 5
 ) -> List[dict]:
-    """
-    Searches Qdrant for resume chunks related to the job description query.
-    """
-
     ensure_collection_exists()
 
     search_result = qdrant_client.query_points(
