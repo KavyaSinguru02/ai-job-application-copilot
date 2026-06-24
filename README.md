@@ -2,7 +2,7 @@
 
 AI Job Application Copilot is a beta web application that helps job seekers compare their resume with a job description and understand how well their profile matches a role.
 
-The application allows users to upload a resume, paste a job description, get a resume match score, identify missing skills, receive resume improvement suggestions, view similar role suggestions, get company recommendations, and download a resume analysis report.
+The application allows users to upload a resume, paste a job description, get a resume match score, identify missing skills, receive resume improvement suggestions, view similar role suggestions, get company recommendations, see live job listings, and download a resume analysis report.
 
 This project was built as a hands-on AI Engineering portfolio project to understand how real AI applications are designed, built, deployed, and improved step by step.
 
@@ -10,9 +10,9 @@ This project was built as a hands-on AI Engineering portfolio project to underst
 
 ## Live Demo
 
-Application URL: `<PASTE_YOUR_DEPLOYED_APP_URL_HERE>`
+Application URL: https://ai-job-application-copilot.streamlit.app/
 
-GitHub Repository: `<PASTE_YOUR_REPO_URL_HERE>`
+GitHub Repository: https://github.com/KavyaSinguru02/ai-job-application-copilot
 
 ---
 
@@ -28,26 +28,29 @@ Users should avoid uploading highly sensitive personal information during beta t
 
 ## Why I Built This Project
 
-While learning AI and Python, I realized that only watching videos or doing isolated practice tasks was not enough for me.
+When I started hearing more about AI and how it is becoming the future, I became curious about how AI applications are actually built.
 
-I wanted to understand how AI applications are actually built end to end.
+I started learning Python, but I realized that only watching videos or doing small practice tasks was not enough.
 
-So I decided to create a real-world project that connects multiple concepts together:
+So I decided to build a real project step by step.
+
+This project helped me connect multiple concepts together:
 
 * Python
 * Backend APIs
 * Frontend UI
 * Authentication
-* Resume parsing
-* LLMs
+* Resume PDF parsing
+* LLM integration
 * Embeddings
 * Vectors
 * RAG
 * Vector database
 * PDF report generation
+* Live job market API integration
 * Cloud deployment
 
-This project helped me learn how different parts of an AI application work together in practice.
+The process of building this application also helped me gain practical exposure to free-tier and beginner-friendly tools for deploying frontend and backend applications.
 
 ---
 
@@ -62,6 +65,7 @@ When applying for jobs, candidates often struggle with questions like:
 * How can I improve my resume for this specific role?
 * What similar roles can I apply for?
 * Which companies may be suitable for this type of role?
+* Are there any live job openings for this role?
 * Can I quickly download a useful report before applying?
 
 AI Job Application Copilot tries to solve these problems using AI.
@@ -88,6 +92,8 @@ Vector search retrieves relevant resume evidence
 AI calculates match score and missing skills
         ↓
 AI generates resume improvement suggestions
+        ↓
+Adzuna fetches live job/company data when available
         ↓
 AI suggests similar roles and target companies
         ↓
@@ -119,7 +125,9 @@ Admin can view basic usage analytics
 * Optimized professional summary
 * Suggested resume bullet points
 * Similar role recommendations
-* Company recommendations
+* AI-based company recommendations
+* Live job listings using Adzuna API
+* Live top company suggestions using Adzuna API
 * LinkedIn search keyword suggestions
 * Downloadable PDF report
 * Admin-only basic analytics dashboard
@@ -132,12 +140,13 @@ Admin can view basic usage analytics
 
 * Python
 * FastAPI
-* OpenAI API
+* Gemini API
 * Pydantic
 * pdfplumber
 * ReportLab
 * Qdrant Cloud
 * Supabase
+* Adzuna API
 
 ### Frontend
 
@@ -154,13 +163,8 @@ Admin can view basic usage analytics
 * Streamlit Community Cloud for frontend deployment
 * Supabase for authentication and analytics
 * Qdrant Cloud for vector database
-* OpenAI for LLM and embeddings
-
-### Explored / Planned Integrations
-
-* Adzuna API for future live job market and company hiring insights
-* LangGraph for future workflow orchestration
-* MCP for future tool-based AI agent integration
+* Gemini API for LLM and embeddings
+* Adzuna API for live job-market data
 
 ---
 
@@ -177,11 +181,13 @@ Supabase Authentication
     ↓
 Resume PDF Parser
     ↓
-OpenAI Embeddings
+Gemini Embeddings
     ↓
 Qdrant Cloud Vector Database
     ↓
-OpenAI LLM Analysis
+Gemini LLM Analysis
+    ↓
+Adzuna Live Job Data
     ↓
 PDF Report Generator
     ↓
@@ -204,6 +210,7 @@ It is used for:
 * Embedding generation
 * Vector search flow
 * RAG evidence processing
+* Live job API integration
 * PDF report generation
 * Authentication validation
 * Analytics saving
@@ -218,6 +225,7 @@ Main endpoints include:
 
 ```text
 GET  /
+GET  /health
 POST /analyze
 POST /generate-report
 GET  /admin/stats
@@ -229,6 +237,7 @@ FastAPI handles:
 * Job description input
 * Authentication check
 * Resume analysis
+* Adzuna job data retrieval
 * PDF report generation
 * Admin analytics
 
@@ -246,6 +255,8 @@ It allows users to:
 * View match scores
 * View missing skills
 * View RAG evidence
+* View live job listings
+* View company suggestions
 * Download the analysis report
 
 Streamlit helped me quickly create a working frontend without spending too much time on frontend complexity in the first version.
@@ -265,12 +276,14 @@ In this project, Supabase helped me understand how authentication and user-level
 
 ---
 
-### 5. OpenAI API
+### 5. Gemini API
 
-OpenAI is used for:
+Gemini API is used as the AI provider in this version.
+
+It is used for:
 
 * Resume and job description understanding
-* Structured AI output
+* Structured AI response generation
 * Skill extraction
 * Match analysis
 * Resume suggestions
@@ -278,6 +291,8 @@ OpenAI is used for:
 * Similar role suggestions
 * Interview preparation suggestions
 * Embedding generation
+
+I switched to Gemini API to keep this beta version aligned with free-tier developer tools.
 
 ---
 
@@ -358,7 +373,24 @@ This improves the quality of the match score and makes the analysis more useful.
 
 ---
 
-### 10. PDF Report Generation
+### 10. Adzuna API
+
+Adzuna API is used to fetch live job-market data.
+
+In this project, Adzuna is used for:
+
+* Live job listings
+* Top company suggestions
+* Company hiring signals
+* Role/location-based job search support
+
+If Adzuna returns live data, the app shows it in the Jobs tab.
+
+If no live data is available, the app falls back to AI-generated strategic company suggestions.
+
+---
+
+### 11. PDF Report Generation
 
 The app generates a downloadable PDF report.
 
@@ -394,6 +426,8 @@ qdrant_rag_analyzer.py
   ↓
 ai_suggestions.py
   ↓
+adzuna_service.py
+  ↓
 resume_optimizer.py
   ↓
 report_generator.py
@@ -420,6 +454,8 @@ RAG Retriever Node
         ↓
 Skill Gap Analyzer Node
         ↓
+Adzuna Job Market Node
+        ↓
 Resume Optimizer Node
         ↓
 Company Recommender Node
@@ -442,21 +478,6 @@ Possible MCP tools:
 * Job search tool
 * Company research tool
 * Resume version tool
-
----
-
-## Future Adzuna Integration
-
-Adzuna is planned as a possible future integration for live job market data.
-
-Possible use cases:
-
-* Find companies hiring for a selected role
-* Show live job counts
-* Suggest locations where the role is more in demand
-* Improve company recommendations using real job market data
-
-Currently, company suggestions are AI-generated strategic suggestions.
 
 ---
 
@@ -554,23 +575,58 @@ http://localhost:8501
 
 ### Backend Environment Variables
 
+Create a local file:
+
+```text
+backend/.env
+```
+
+Add:
+
 ```env
-OPENAI_API_KEY=
-OPENAI_MODEL=
-OPENAI_EMBEDDING_MODEL=
-OPENAI_EMBEDDING_DIMENSION=
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash-lite
+GEMINI_EMBEDDING_MODEL=gemini-embedding-001
+GEMINI_EMBEDDING_DIMENSION=768
 
 QDRANT_URL=
 QDRANT_API_KEY=
-QDRANT_COLLECTION_NAME=
+QDRANT_COLLECTION_NAME=resume_rag_chunks_gemini
 
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 
+ADZUNA_APP_ID=
+ADZUNA_APP_KEY=
+ADZUNA_COUNTRY=gb
+
 ADMIN_EMAIL=
+ALLOWED_TESTER_EMAILS=
 ```
 
+For private beta, use:
+
+```env
+ALLOWED_TESTER_EMAILS=your_email@example.com
+```
+
+For public beta, leave it empty:
+
+```env
+ALLOWED_TESTER_EMAILS=
+```
+
+---
+
 ### Frontend Streamlit Secrets
+
+Create a local file:
+
+```text
+frontend/.streamlit/secrets.toml
+```
+
+Add:
 
 ```toml
 SUPABASE_URL = ""
@@ -594,21 +650,53 @@ Do not commit `.env` or `secrets.toml` files to GitHub.
 
 The backend is deployed using Render.
 
-Render hosts the FastAPI application and exposes the backend API URL.
+Recommended Render settings:
+
+```text
+Root Directory: backend
+Build Command: pip install -r requirements.txt
+Start Command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Backend environment variables should be added in Render dashboard, not committed to GitHub.
+
+---
 
 ### Frontend Deployment
 
 The frontend is deployed using Streamlit Community Cloud.
 
-Streamlit hosts the user-facing web application.
+Recommended Streamlit settings:
+
+```text
+Repository: GitHub repository
+Branch: main
+Main file path: frontend/app.py
+```
+
+Frontend secrets should be added in Streamlit Cloud secrets manager, not committed to GitHub.
+
+---
 
 ### Authentication and Analytics
 
 Supabase is used for user authentication and basic analytics storage.
 
+---
+
 ### Vector Database
 
 Qdrant Cloud is used for storing and searching resume embeddings.
+
+Important:
+
+The Qdrant collection used for Gemini embeddings is:
+
+```text
+resume_rag_chunks_gemini
+```
+
+This is separate from any previous OpenAI embedding collection because embedding dimensions are different.
 
 ---
 
@@ -622,7 +710,8 @@ I learned how different tools work together:
 * Streamlit Community Cloud for frontend hosting
 * Supabase for authentication and analytics
 * Qdrant Cloud for vector database
-* OpenAI for LLM and embeddings
+* Gemini API for LLM and embeddings
+* Adzuna API for live job-market data
 * ReportLab for PDF generation
 * FastAPI for backend APIs
 
@@ -647,7 +736,7 @@ Possible contribution areas:
 * Better scoring logic
 * LangGraph workflow
 * MCP integration
-* Adzuna job market integration
+* Better Adzuna job filtering
 * More detailed analytics
 * Resume export improvements
 * Mobile UI improvements
@@ -659,6 +748,5 @@ Possible contribution areas:
 
 Built by Kavya Singuru.
 
-LinkedIn: `<PASTE_LINKEDIN_URL_HERE>`
-
-GitHub: `<PASTE_GITHUB_PROFILE_URL_HERE>`
+LINKEDIN_URL = "https://www.linkedin.com/in/kavya-singuru"
+GITHUB_URL = "https://github.com/KavyaSinguru02/ai-job-application-copilot"
