@@ -47,6 +47,11 @@ job_description = st.text_area(
     placeholder="Paste the full job description here..."
 )
 
+location = st.text_input(
+    "Preferred Job Location",
+    placeholder="Example: Krakow, Poland / Remote / London / Hyderabad"
+)
+
 
 analyze_button = st.button("Analyze Resume", type="primary")
 
@@ -67,7 +72,9 @@ if analyze_button:
             }
 
             data = {
-                "job_description": job_description
+                "job_description": job_description,
+                "location": location
+                
             }
 
             try:
@@ -108,12 +115,13 @@ if analyze_button:
 
                     st.divider()
 
-                    tab1, tab2, tab3, tab4, tab5 = st.tabs(
+                    tab1, tab2, tab3, tab4, tab5,tab6 = st.tabs(
                         [
                             "Summary",
                             "Matched Skills",
                             "Missing Skills",
                             "AI Feedback",
+                            "Optimized Resume",
                             "Raw JSON"
                         ]
                     )
@@ -186,8 +194,91 @@ if analyze_button:
                     with tab4:
                         st.subheader("AI Resume Feedback")
                         st.markdown(feedback)
-
                     with tab5:
+                        st.subheader("Optimized Resume Strategy")
+
+                        optimized = result.get("optimized_resume", {})
+
+                        st.markdown("### Resume Headline")
+                        st.write(optimized.get("optimized_resume_headline", ""))
+
+                        st.markdown("### Professional Summary")
+                        st.write(optimized.get("optimized_professional_summary", ""))
+
+                        st.markdown("### Optimized Skills Section")
+                        for skill in optimized.get("optimized_skills_section", []):
+                            st.write(f"✅ {skill}")
+
+                        st.markdown("### Optimized Experience Bullets")
+                        for bullet in optimized.get("optimized_experience_bullets", []):
+                            st.write(f"- {bullet}")
+
+                        st.markdown("### Optimized Project Bullets")
+                        for bullet in optimized.get("optimized_project_bullets", []):
+                            st.write(f"- {bullet}")
+
+                        st.markdown("### ATS Keywords to Include")
+                        for keyword in optimized.get("ats_keywords_to_include", []):
+                            st.write(f"🔑 {keyword}")
+
+                        st.markdown("### Do NOT Add Unless You Truly Have Experience")
+                        for keyword in optimized.get("keywords_not_to_add_without_real_experience", []):
+                            st.write(f"⚠️ {keyword}")
+
+                        st.markdown("### Target Company Types")
+                        for company_type in optimized.get("target_company_types", []):
+                            st.write(f"🏢 {company_type}")
+
+                        st.markdown("### Recommended Companies")
+                        st.caption(optimized.get("company_data_note", ""))
+
+                        live_top_companies = optimized.get("live_top_companies", [])
+                        recommended_companies = optimized.get("recommended_companies", [])
+
+                        if live_top_companies:
+                            st.markdown("#### Live Top Companies")
+                            for company in live_top_companies:
+                                st.write(
+                                    f"🏢 {company.get('company_name')} — "
+                                    f"{company.get('vacancy_count')} vacancies"
+                                )
+
+                        if recommended_companies:
+                            st.markdown("#### AI Recommended Companies")
+                            for company in recommended_companies:
+                                st.markdown(
+                                    f"""
+                                    **{company.get("company_name", "")}**  
+                                    Why suitable: {company.get("why_suitable", "")}  
+                                    Role fit: {company.get("role_fit_reason", "")}  
+                                    Search keywords: {", ".join(company.get("search_keywords", []))}
+                                    """
+                                )
+                                st.divider()
+
+                        st.markdown("### Similar Roles to Apply")
+                        for role in optimized.get("similar_roles_to_apply", []):
+                            st.markdown(
+                                f"""
+                                **{role.get("role_title", "")}**  
+                                Why it matches: {role.get("why_it_matches", "")}  
+                                Skills to improve: {", ".join(role.get("missing_skills_to_improve", []))}
+                                """
+                            )
+
+                        st.markdown("### Job Search Keywords")
+                        st.write("LinkedIn:")
+                        st.write(", ".join(optimized.get("linkedin_search_keywords", [])))
+
+                        st.write("Naukri:")
+                        st.write(", ".join(optimized.get("naukri_search_keywords", [])))
+
+                        st.write("Indeed:")
+                        st.write(", ".join(optimized.get("indeed_search_keywords", [])))
+
+                        st.markdown("### Final Resume Strategy")
+                        st.write(optimized.get("final_resume_strategy", ""))
+                    with tab6:
                         st.subheader("Full API Response")
                         st.json(result)
 
