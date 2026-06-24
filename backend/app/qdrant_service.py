@@ -10,10 +10,10 @@ QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY") or None
 QDRANT_COLLECTION_NAME = os.getenv(
     "QDRANT_COLLECTION_NAME",
-    "resume_rag_chunks"
+    "resume_rag_chunks_gemini"
 )
 
-VECTOR_SIZE = int(os.getenv("OPENAI_EMBEDDING_DIMENSION", "1536"))
+VECTOR_SIZE = int(os.getenv("GEMINI_EMBEDDING_DIMENSION", "768"))
 
 qdrant_client = QdrantClient(
     url=QDRANT_URL,
