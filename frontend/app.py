@@ -3,6 +3,7 @@ import requests
 
 
 API_URL = "http://127.0.0.1:8000/analyze"
+REPORT_API_URL = "http://127.0.0.1:8000/generate-report"
 
 
 st.set_page_config(
@@ -92,37 +93,56 @@ if analyze_button:
                     feedback = result.get("feedback", "")
 
                     st.success("Analysis completed!")
+                    try:
+                        report_response = requests.post(
+                            REPORT_API_URL,
+                            json=result,
+                            timeout=120,
+                        )
+
+                        if report_response.status_code == 200:
+                            st.download_button(
+                                label="Download Resume Analysis Report",
+                                data=report_response.content,
+                                file_name="resume_analysis_report.pdf",
+                                mime="application/pdf",
+                            )
+                        else:
+                            st.warning("Report generation failed.")
+
+                    except Exception:
+                        st.warning("Could not generate PDF report.")
 
                     col1, col2, col3 = st.columns(3)
 
                     with col1:
                         st.metric(
                             "Overall Match",
-                            f"{match_result.get('match_percentage', 0)}%"
+                            f"{match_result.get('match_percentage', 0)}%",
                         )
 
                     with col2:
                         st.metric(
                             "ATS Keyword Score",
-                            f"{match_result.get('ats_keyword_score', 0)}%"
+                            f"{match_result.get('ats_keyword_score', 0)}%",
                         )
 
                     with col3:
                         st.metric(
                             "Semantic Fit Score",
-                            f"{match_result.get('semantic_fit_score', 0)}%"
+                            f"{match_result.get('semantic_fit_score', 0)}%",
                         )
 
                     st.divider()
 
-                    tab1, tab2, tab3, tab4, tab5,tab6 = st.tabs(
+                    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
                         [
                             "Summary",
                             "Matched Skills",
                             "Missing Skills",
                             "AI Feedback",
                             "Optimized Resume",
-                            "Raw JSON"
+                            "Raw JSON",
                         ]
                     )
 
@@ -194,6 +214,7 @@ if analyze_button:
                     with tab4:
                         st.subheader("AI Resume Feedback")
                         st.markdown(feedback)
+
                     with tab5:
                         st.subheader("Optimized Resume Strategy")
 
@@ -278,6 +299,7 @@ if analyze_button:
 
                         st.markdown("### Final Resume Strategy")
                         st.write(optimized.get("final_resume_strategy", ""))
+
                     with tab6:
                         st.subheader("Full API Response")
                         st.json(result)

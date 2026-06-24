@@ -1,8 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.responses import Response
 from app.resume_parser import extract_resume_text
 from app.matcher import calculate_match_score
 from app.ai_suggestions import generate_resume_feedback
 from app.resume_optimizer import generate_optimized_resume_and_companies
+from app.report_generator import generate_pdf_report
 
 app = FastAPI(title="AI Job Application Copilot")
 
@@ -45,3 +47,16 @@ async def analyze_resume(
         "feedback": feedback,
         "optimized_resume": optimized_resume
     }
+
+
+@app.post("/generate-report")
+async def generate_report(report_data: dict):
+    pdf_bytes = generate_pdf_report(report_data)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": "attachment; filename=resume_analysis_report.pdf"
+        }
+    )
