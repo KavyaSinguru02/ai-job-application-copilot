@@ -12,6 +12,7 @@ from app.resume_optimizer import generate_optimized_resume_and_companies
 from app.report_generator import generate_pdf_report
 from app.auth import get_current_user
 from app.analytics import save_analysis_event, get_admin_stats
+from app.gemini_service import AIServiceUnavailableError
 
 
 load_dotenv()
@@ -77,13 +78,13 @@ async def analyze_resume(
                 )
             )
 
-        if not resume.filename.lower().endswith(".pdf"):
+        if not resume.filename or not resume.filename.lower().endswith(".pdf"):
             raise HTTPException(
                 status_code=400,
                 detail="Only PDF resumes are supported."
             )
 
-        if not job_description.strip():
+        if not job_description or not job_description.strip():
             raise HTTPException(
                 status_code=400,
                 detail="Job description cannot be empty."
@@ -137,6 +138,15 @@ async def analyze_resume(
 
     except HTTPException:
         raise
+
+    except AIServiceUnavailableError:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "The AI model is temporarily busy due to high demand. "
+                "Please try again after some time. This can happen on free-tier AI services."
+            )
+        )
 
     except Exception as e:
         logger.exception("Unexpected error during resume analysis")
