@@ -348,6 +348,9 @@ def render_app():
                             "Vector Semantic Score",
                             f"{match_result.get('vector_semantic_score', 0)}%"
                         )
+                        st.write(
+                            f"Vector Database: {match_result.get('vector_database', 'Not available')}"
+                        )
 
                         rag_evidence = match_result.get("rag_evidence", [])
 

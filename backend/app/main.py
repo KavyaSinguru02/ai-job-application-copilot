@@ -36,7 +36,8 @@ async def analyze_resume(
 
     match_result = calculate_match_score(
         resume_text=resume_text,
-        job_description=job_description
+        job_description=job_description,
+        user_email=user.get("email", "anonymous")
     )
 
     feedback = generate_resume_feedback(
